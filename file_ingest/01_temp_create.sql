@@ -1,0 +1,47 @@
+CREATE TABLE "sizingtest"."<INSERT_RUN_ID_HERE>"."temp"."<INSERT_DATE_HERE>_0_0_<INSERT_NUM_HERE>"
+AS 
+SELECT NOW() AS creationTime,
+    "managedObjectId",
+    "measuringNodeId",
+    "_time",
+    TO_DATE("_time") AS "date",
+    CAST(
+        EXTRACT(
+            HOUR
+            FROM
+                "_time"
+        ) AS INTEGER
+    ) AS "hour",
+    false AS "isC8y",
+    "C_H101",
+    "C_H102",
+    "C_H103",
+    "C_H104",
+    "C_H105",
+    "C_H106",
+    "C_H107",
+    "C_H108",
+    "C_H109",
+    "C_H110",
+    "C_H111",
+    "C_H112",
+    "C_H113",
+    "C_H114",
+    "C_H115",
+    "C_H116",
+    "C_H117",
+    "C_H118",
+    "C_H119",
+    "C_H120",
+    "C_H121",
+    "C_H122",
+    "C_H123",
+    "C_H124",
+    "C_H125",
+    "C_H126",
+    "C_H127",
+    "C_H128",
+    "C_H129",
+    "C_H130"
+FROM sizingtest."<INSERT_RUN_ID_HERE>"."raw_data"."<INSERT_DATE_HERE>"."0_0_<INSERT_NUM_HERE>.parquet"
+;

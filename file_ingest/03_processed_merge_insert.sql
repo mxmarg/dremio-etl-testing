@@ -1,6 +1,6 @@
 MERGE INTO "sizingtest"."<INSERT_RUN_ID_HERE>".processed_table p
 USING (
-    SELECT 
+    SELECT DISTINCT
         "managedObjectId",
         "measuringNodeId",
         "time",
@@ -357,10 +357,8 @@ USING (
         NULL AS "V79",
         NULL AS "V80"
     FROM "sizingtest"."<INSERT_RUN_ID_HERE>".raw_table
-    WHERE managedObjectId = 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxmo-A' AND 
-        --measuringNodeId = 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxmn-A' AND
-        "date" BETWEEN '2000-01-01' AND '2000-01-31'
+    WHERE "date" = '<INSERT_DATE_HERE>' AND "hour" = <INSERT_HOUR_HERE>
 ) AS r
-ON p."managedObjectId" = r."managedObjectId" AND p."measuringNodeId" = r."measuringNodeId" AND p."time" = r."time"
-WHEN MATCHED THEN UPDATE SET *
---WHEN NOT MATCHED THEN INSERT *
+ON p."date" = r."date" AND p."hour" = r."hour" AND p."managedObjectId" = r."managedObjectId" AND p."measuringNodeId" = r."measuringNodeId" AND p."time" = r."time"
+--WHEN MATCHED THEN UPDATE SET *
+WHEN NOT MATCHED THEN INSERT *

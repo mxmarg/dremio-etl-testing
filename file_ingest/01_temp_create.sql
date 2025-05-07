@@ -43,5 +43,5 @@ SELECT NOW() AS creationTime,
     "C_H128",
     "C_H129",
     "C_H130"
-FROM sizingtest."<INSERT_RUN_ID_HERE>"."raw_data"."<INSERT_DATE_HERE>"."0_0_<INSERT_NUM_HERE>.parquet"
+FROM sizingtest."raw_data"."<INSERT_DATE_HERE>"."0_0_<INSERT_NUM_HERE>.parquet"
 ;

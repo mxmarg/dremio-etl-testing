@@ -359,7 +359,7 @@ USING (
     FROM "sizingtest"."<INSERT_RUN_ID_HERE>".raw_table
     WHERE managedObjectId = 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxmo-A' AND 
         measuringNodeId = 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxmn-A' AND 
-        "date" = '<INSERT_DATE_HERE>' AND "hour" = <INSERT_HOUR_HERE>
+        "date" = '<INSERT_DATE_HERE>' AND <INSERT_HOUR_RANGE_HERE>
 ) AS r
 ON p."date" = r."date" AND p."hour" = r."hour" AND p."managedObjectId" = r."managedObjectId" AND p."measuringNodeId" = r."measuringNodeId" AND p."time" = r."time"
 WHEN MATCHED THEN UPDATE SET *

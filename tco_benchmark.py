@@ -106,11 +106,13 @@ def raw_to_processed_insert(run_id, num_days):
     with open("file_ingest/03_processed_merge_insert.sql", 'r') as file:
         query = file.read()
     query = query.replace("<INSERT_RUN_ID_HERE>", run_id)
+    hour_step = 3
     for i in range(1, num_days+1):
         date_str = "2000-01-" + str(i).rjust(2, "0")
-        for h in range(0, 24):
-            q = query.replace("<INSERT_DATE_HERE>", date_str).replace("<INSERT_HOUR_HERE>", str(h))
-            job_name = f"raw_to_processed_insert - {date_str} {h}"
+        for h in range(0, 24, hour_step):
+            hour_range = f'"hour" >= {h} AND "hour" < {h+hour_step}'
+            q = query.replace("<INSERT_DATE_HERE>", date_str).replace("<INSERT_HOUR_RANGE_HERE>", hour_range)
+            job_name = f"raw_to_processed_insert - {date_str} {hour_range}"
             queries.append({"job_name": job_name, "sql": q})
     return queries
 
@@ -122,11 +124,13 @@ def raw_to_processed_merge(run_id, num_days):
     with open("file_ingest/04_processed_merge_update_insert.sql", 'r') as file:
         query = file.read()
     query = query.replace("<INSERT_RUN_ID_HERE>", run_id)
+    hour_step = 3
     for i in range(1, num_days+1):
         date_str = "2000-01-" + str(i).rjust(2, "0")
-        for h in range(0, 24):
-            q = query.replace("<INSERT_DATE_HERE>", date_str).replace("<INSERT_HOUR_HERE>", str(h))
-            job_name = f"raw_to_processed_merge - {date_str} {h}"
+        for h in range(0, 24, hour_step):
+            hour_range = f'"hour" >= {h} AND "hour" < {h+hour_step}'
+            q = query.replace("<INSERT_DATE_HERE>", date_str).replace("<INSERT_HOUR_RANGE_HERE>", hour_range)
+            job_name = f"raw_to_processed_merge - {date_str} {hour_range}"
             queries.append({"job_name": job_name, "sql": q})
     return queries
 

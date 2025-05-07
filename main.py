@@ -13,6 +13,10 @@ def run_job(api: DremioAPI, sql: str):
     return job_state
 
 def run_sequential_jobs(api: DremioAPI, queries: list[dict]):
+    start_time = time.time()
+    start_time_str = datetime.fromtimestamp(start_time).strftime("%Y-%m-%d %H:%M:%S")
+    print(f"\n--- {start_time_str} Submitting {len(queries)} sequential jobs ---")
+
     for q in queries:
         job_name = q["job_name"]
         print(f"Submitted {job_name}")
@@ -20,6 +24,10 @@ def run_sequential_jobs(api: DremioAPI, queries: list[dict]):
         if job_state != 'COMPLETED':
             print(job_state)
 
+    end_time = time.time()
+    end_time_str = datetime.fromtimestamp(end_time).strftime("%Y-%m-%d %H:%M:%S")
+    duration = end_time - start_time
+    print(f"--- {end_time_str} All {len(queries)} sequential jobs Ran in {duration:.2f} seconds ---")
 
 def run_parallel_jobs(api: DremioAPI, queries: list[dict], max_workers=5):
     start_time = time.time()
@@ -62,6 +70,7 @@ if __name__ == "__main__":
     dremio_url = parser.get('Authentication', 'dremio_endpoint')
 
     api = DremioAPI(user, password, dremio_url, timeout=60)
+    api_prio = DremioAPI('priority_user', password, dremio_url, timeout=60)
 
     RUN_ID = tco_benchmark.generate_timestamped_run_id()
     NUM_DAYS = 1
@@ -95,11 +104,11 @@ if __name__ == "__main__":
 
     print(f"\n### STEP 4 - Ingest raw table into processed table ###")
     processed_insert_queries = tco_benchmark.raw_to_processed_insert(RUN_ID, NUM_DAYS)
-    run_sequential_jobs(api, queries=processed_insert_queries) # TODO: add queue priority
+    run_sequential_jobs(api_prio, queries=processed_insert_queries)
 
     print(f"\n### STEP 5 - Merge raw into processed table across partitions ###")
     processed_merge_queries = tco_benchmark.raw_to_processed_merge(RUN_ID, NUM_DAYS)
-    run_sequential_jobs(api, queries=processed_merge_queries)
+    run_sequential_jobs(api_prio, queries=processed_merge_queries)
 
     print(f"\n### STEP 6 - Refresh raw reflection on aggregated view on processed table (Should have been happening incrementally in the background...) ###\n")
 

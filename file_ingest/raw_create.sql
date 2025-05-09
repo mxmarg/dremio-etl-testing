@@ -358,4 +358,9 @@ CREATE TABLE IF NOT EXISTS "sizingtest"."<INSERT_RUN_ID_HERE>".raw_table (
         "C_H350" FLOAT
 )
 PARTITION BY ("date", "hour")
-;
+TBLPROPERTIES (
+        'write.delete.mode'='merge-on-read',
+        'write.update.mode'='merge-on-read',
+        'write.merge.mode'='merge-on-read',
+        'write.parquet.compression-codec'='zstd'
+);

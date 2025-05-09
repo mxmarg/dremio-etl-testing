@@ -356,3 +356,9 @@ CREATE TABLE IF NOT EXISTS "sizingtest"."<INSERT_RUN_ID_HERE>".processed_table (
         "V80" VARCHAR
 )
 PARTITION BY ("date", "hour")
+TBLPROPERTIES (
+        'write.delete.mode'='merge-on-read',
+        'write.update.mode'='merge-on-read',
+        'write.merge.mode'='merge-on-read',
+        'write.parquet.compression-codec'='zstd'
+)

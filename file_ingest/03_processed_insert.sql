@@ -1,4 +1,4 @@
-INSERT INTO "sizingtest"."<INSERT_RUN_ID_HERE>"."processed_table" (
+INSERT INTO <INSERT_SOURCE_PATH_HERE>."<INSERT_RUN_ID_HERE>"."processed_table" (
     "managedObjectId",
     "measuringNodeId",
     "time",
@@ -71,5 +71,5 @@ SELECT
     "C_H108" AS "V8",
     "C_H109" AS "V9",
     "C_H110" AS "V10"
-FROM "sizingtest"."<INSERT_RUN_ID_HERE>".raw_table
+FROM <INSERT_SOURCE_PATH_HERE>."<INSERT_RUN_ID_HERE>".raw_table
 WHERE "date" = '<INSERT_DATE_HERE>' AND "hour" = <INSERT_HOUR_HERE>

@@ -1,4 +1,4 @@
-MERGE INTO "sizingtest"."<INSERT_RUN_ID_HERE>".processed_table p
+MERGE INTO <INSERT_SOURCE_PATH_HERE>."<INSERT_RUN_ID_HERE>".processed_table p
 USING (
     SELECT
         "managedObjectId",
@@ -36,7 +36,7 @@ USING (
         "C_H108" AS "V8",
         "C_H109" AS "V9",
         "C_H110" AS "V10"
-    FROM "sizingtest"."<INSERT_RUN_ID_HERE>".raw_table
+    FROM <INSERT_SOURCE_PATH_HERE>."<INSERT_RUN_ID_HERE>".raw_table
     WHERE "date" = '<INSERT_DATE_HERE>' AND <INSERT_HOUR_RANGE_HERE>
 ) AS r
 ON p."date" = r."date" AND p."hour" = r."hour" AND p."managedObjectId" = r."managedObjectId" AND p."measuringNodeId" = r."measuringNodeId" AND p."time" = r."time"

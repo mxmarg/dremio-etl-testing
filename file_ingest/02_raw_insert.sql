@@ -1,5 +1,5 @@
 INSERT INTO
-    sizingtest."<INSERT_RUN_ID_HERE>".raw_table (
+    <INSERT_SOURCE_PATH_HERE>."<INSERT_RUN_ID_HERE>".raw_table (
         "measuringNodeId",
         "managedObjectId",
         "creationTime",
@@ -85,5 +85,5 @@ SELECT
     "C_H129",
     "C_H130"
 FROM
-    "sizingtest"."<INSERT_RUN_ID_HERE>"."temp"."<INSERT_DATE_HERE>_0_0_<INSERT_NUM_HERE>"
+    <INSERT_SOURCE_PATH_HERE>."<INSERT_RUN_ID_HERE>"."temp"."<INSERT_DATE_HERE>_0_0_<INSERT_NUM_HERE>"
 ;

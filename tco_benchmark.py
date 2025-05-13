@@ -61,7 +61,7 @@ def create_agg_reflections(run_id):
 
 def promote_parquet_files(run_id, num_days, num_files) -> list[str]:
     queries = []
-    query = 'ALTER TABLE sizingtest."raw_data"."<INSERT_DATE_HERE>"."0_0_<INSERT_NUM_HERE>.parquet" REFRESH METADATA AUTO PROMOTION'
+    query = 'ALTER TABLE <INSERT_SOURCE_PATH_HERE>."raw_data"."<INSERT_DATE_HERE>"."0_0_<INSERT_NUM_HERE>.parquet" REFRESH METADATA AUTO PROMOTION'
     query = query.replace("<INSERT_RUN_ID_HERE>", run_id)
     for i in range(1, num_days+1):
         date_str = "2000-01-" + str(i).rjust(2, "0")
@@ -168,20 +168,20 @@ def optimize_processed(run_id, num_days):
 
 def vacuum_tables(run_id):
     queries = [
-        [{"job_name": "vacuum_raw_table",       "sql": f'VACUUM TABLE sizingtest."{run_id}".raw_table EXPIRE SNAPSHOTS retain_last 10'}],
-        [{"job_name": "vacuum_processed_table", "sql": f'VACUUM TABLE sizingtest."{run_id}".processed_table EXPIRE SNAPSHOTS retain_last 10'}],
+        [{"job_name": "vacuum_raw_table",       "sql": f'VACUUM TABLE <INSERT_SOURCE_PATH_HERE>."{run_id}".raw_table EXPIRE SNAPSHOTS retain_last 10'}],
+        [{"job_name": "vacuum_processed_table", "sql": f'VACUUM TABLE <INSERT_SOURCE_PATH_HERE>."{run_id}".processed_table EXPIRE SNAPSHOTS retain_last 10'}],
     ]
     return queries
 
 def drop_tables(run_id, num_days, num_files):
     queries = [
-        [{"job_name": "drop_raw_table",       "sql": f'DROP TABLE IF EXISTS sizingtest."{run_id}".raw_table'}],
-        [{"job_name": "drop_processed_table", "sql": f'DROP TABLE IF EXISTS sizingtest."{run_id}".processed_table'}],
+        [{"job_name": "drop_raw_table",       "sql": f'DROP TABLE IF EXISTS <INSERT_SOURCE_PATH_HERE>."{run_id}".raw_table'}],
+        [{"job_name": "drop_processed_table", "sql": f'DROP TABLE IF EXISTS <INSERT_SOURCE_PATH_HERE>."{run_id}".processed_table'}],
     ]
     for i in range(1, num_days+1):
         date_str = "2000-01-" + str(i).rjust(2, "0")
         for n in range(0, num_files):
-            queries.append([{"job_name": f"drop_temp_table_{date_str}_{n}", "sql": f'DROP TABLE IF EXISTS "sizingtest"."{run_id}"."temp"."{date_str}_0_0_{n}"'}])
+            queries.append([{"job_name": f"drop_temp_table_{date_str}_{n}", "sql": f'DROP TABLE IF EXISTS <INSERT_SOURCE_PATH_HERE>."{run_id}"."temp"."{date_str}_0_0_{n}"'}])
     return queries
 
 def drop_views(run_id):
@@ -192,7 +192,7 @@ def drop_views(run_id):
 
 def alter_tables(run_id):
     query = f'''
-ALTER TABLE "sizingtest"."{run_id}".processed_table SET TBLPROPERTIES (
+ALTER TABLE <INSERT_SOURCE_PATH_HERE>."{run_id}".processed_table SET TBLPROPERTIES (
         'write.delete.mode'='merge-on-read',
         'write.update.mode'='merge-on-read',
         'write.merge.mode'='merge-on-read',

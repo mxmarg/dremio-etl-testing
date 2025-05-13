@@ -4,11 +4,12 @@ import time
 
 class DremioAPI:
 
-    def __init__(self, dremio_user, dremio_password, dremio_url, timeout=30, verify=True):
+    def __init__(self, dremio_user, dremio_password, dremio_url, timeout=30, verify=True, replace_source_path=""):
         self.dremio_user = dremio_user
         self.dremio_url = dremio_url
         self.timeout = timeout
         self.verify = verify
+        self.replace_source_path = replace_source_path
         self.auth_token = self.get_auth_token(dremio_user, dremio_password, dremio_url)
         self.headers = {
             'Content-Type': 'application/json',
@@ -59,6 +60,8 @@ class DremioAPI:
         return job_state
 
     def post_sql_query(self, sql: str):
+        if self.replace_source_path:
+            sql = sql.replace("<INSERT_SOURCE_PATH_HERE>", self.replace_source_path)
         response = requests.post(
             self.dremio_url + '/api/v3/sql',
             headers=self.headers,

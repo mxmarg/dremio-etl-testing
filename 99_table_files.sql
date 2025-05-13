@@ -12,7 +12,7 @@ FROM (
         "partition", 
         record_count,
         file_size_in_bytes
-    FROM table(table_files('"sizingtest"."<INSERT_RUN_ID_HERE>".processed_table'))
+    FROM table(table_files('<INSERT_SOURCE_PATH_HERE>."<INSERT_RUN_ID_HERE>".processed_table'))
 )
 GROUP BY 1, 2, 3
 ORDER BY 2, 3

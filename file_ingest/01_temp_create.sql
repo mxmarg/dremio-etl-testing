@@ -1,4 +1,4 @@
-CREATE TABLE "sizingtest"."<INSERT_RUN_ID_HERE>"."temp"."<INSERT_DATE_HERE>_0_0_<INSERT_NUM_HERE>"
+CREATE TABLE <INSERT_SOURCE_PATH_HERE>."<INSERT_RUN_ID_HERE>"."temp"."<INSERT_DATE_HERE>_0_0_<INSERT_NUM_HERE>"
 AS 
 SELECT NOW() AS creationTime,
     "managedObjectId",
@@ -43,5 +43,5 @@ SELECT NOW() AS creationTime,
     "C_H128",
     "C_H129",
     "C_H130"
-FROM sizingtest."raw_data"."<INSERT_DATE_HERE>"."0_0_<INSERT_NUM_HERE>.parquet"
+FROM <INSERT_SOURCE_PATH_HERE>."raw_data"."<INSERT_DATE_HERE>"."0_0_<INSERT_NUM_HERE>.parquet"
 ;

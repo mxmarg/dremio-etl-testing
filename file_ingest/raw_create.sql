@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS "sizingtest"."<INSERT_RUN_ID_HERE>".raw_table (
+CREATE TABLE IF NOT EXISTS <INSERT_SOURCE_PATH_HERE>."<INSERT_RUN_ID_HERE>".raw_table (
         "creationTime" TIMESTAMP,
         "managedObjectId" VARCHAR,
         "measuringNodeId" VARCHAR,

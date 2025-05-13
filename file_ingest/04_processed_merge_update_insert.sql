@@ -1,4 +1,4 @@
-MERGE INTO "sizingtest"."<INSERT_RUN_ID_HERE>".processed_table p
+MERGE INTO <INSERT_SOURCE_PATH_HERE>."<INSERT_RUN_ID_HERE>".processed_table p
 USING (
     SELECT
         "managedObjectId",
@@ -36,7 +36,7 @@ USING (
         "C_H108" || ' (updated)' AS "V8",
         "C_H109" || ' (updated)' AS "V9",
         "C_H110" || ' (updated)' AS "V10"
-    FROM "sizingtest"."<INSERT_RUN_ID_HERE>".raw_table
+    FROM <INSERT_SOURCE_PATH_HERE>."<INSERT_RUN_ID_HERE>".raw_table
     WHERE managedObjectId = 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxmo-A' AND -- One managed object has 2.24m records per day
         -- measuringNodeId = 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxmn-A' AND 
         "date" = '<INSERT_DATE_HERE>' AND <INSERT_HOUR_RANGE_HERE>

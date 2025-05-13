@@ -2106,7 +2106,7 @@ CASE WHEN V80 IS NULL THEN NULL
 ELSE CONCAT("time", '##', V80)
 END) AS V80_TMaxWithValue
 FROM
-    "sizingtest"."<INSERT_RUN_ID_HERE>"."processed_table"
+    <INSERT_SOURCE_PATH_HERE>."<INSERT_RUN_ID_HERE>"."processed_table"
 GROUP BY
     "managedObjectId",
     "measuringNodeId",

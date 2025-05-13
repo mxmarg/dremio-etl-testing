@@ -135,14 +135,13 @@ if __name__ == "__main__":
     password = parser.get('Authentication', 'password')
     dremio_url = parser.get('Authentication', 'dremio_endpoint')
 
-    api = DremioAPI(user, password, dremio_url, timeout=60)
-    api_prio = DremioAPI('priority_user', password, dremio_url, timeout=60)
-
     RUN_ID = tco_benchmark.generate_timestamped_run_id()
     NUM_DAYS = 1
     NUM_FILES_PER_DAY = 11
     MAX_PARALLEL_JOBS_SUBMITTED = 20
     DREMIO_SPACE_NAME = "sizingtest_space"
+    DREMIO_SOURCE_PATH = '"sizingtest"'
+    api = DremioAPI(user, password, dremio_url, timeout=60, replace_source_path=DREMIO_SOURCE_PATH)
     api.create_space(DREMIO_SPACE_NAME)
 
     print(f"Run ID: {RUN_ID}")
@@ -150,9 +149,9 @@ if __name__ == "__main__":
     print(f"NUM_FILES_PER_DAY: est. {NUM_FILES_PER_DAY}")
 
     # ### Preparation ###
-    # print(f"\n### Preparation - Generate Dummy Data Files ###")
-    # dummy_data_queries = tco_benchmark.generate_dummy_data(RUN_ID, NUM_DAYS)
-    # run_parallel_jobs(api, dummy_data_queries, max_workers=MAX_PARALLEL_JOBS_SUBMITTED)
+    print(f"\n### Preparation - Generate Dummy Data Files ###")
+    dummy_data_queries = tco_benchmark.generate_dummy_data(RUN_ID, NUM_DAYS)
+    run_parallel_jobs(api, dummy_data_queries, max_workers=MAX_PARALLEL_JOBS_SUBMITTED)
 
     NUM_TENANTS = 10
     multi_tenant_run(api, NUM_TENANTS)

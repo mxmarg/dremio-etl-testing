@@ -1,5 +1,5 @@
 --ALTER SESSION SET "store.parquet.block-size" = 10000000;
-CREATE TABLE sizingtest."<INSERT_RUN_ID_HERE>".raw_data."<INSERT_DATE_HERE>"
+CREATE TABLE <INSERT_SOURCE_PATH_HERE>.raw_data."<INSERT_DATE_HERE>"
 STORE AS (type => 'parquet') AS
 WITH ints AS (
     SELECT * 

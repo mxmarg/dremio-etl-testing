@@ -26,6 +26,19 @@ class DremioAPI:
             raise RuntimeError("Authentication error.")
         return '_dremio' + response.json()['token']
 
+    def create_space(self, space_name: list):
+        payload: str = '{"entityType": "space", "name": "' + space_name + '"}'
+        payload = payload.encode(encoding='utf-8')
+        response = requests.post(
+                self.dremio_url + '/api/v3/catalog/',
+                headers=self.headers,
+                timeout=self.timeout,
+                verify=self.verify,
+                data=payload
+        )
+        # if response.status_code != 200:
+        #     print("Error creating space: " + str(response.status_code) + ' ' + response.text)
+
     def get_query_info(self, job_id: str):
         while True:
             response = requests.get(

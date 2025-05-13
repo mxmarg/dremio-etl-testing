@@ -65,10 +65,10 @@ def promote_parquet_files(run_id, num_days, num_files) -> list[str]:
     query = query.replace("<INSERT_RUN_ID_HERE>", run_id)
     for i in range(1, num_days+1):
         date_str = "2000-01-" + str(i).rjust(2, "0")
-        for j in range(0, num_files+1):
+        for j in range(0, num_files):
             q = query.replace("<INSERT_DATE_HERE>", date_str).replace("<INSERT_NUM_HERE>", str(j))
             job_name = (f"promote_parquet_files - {date_str} 0_0_{j}.parquet")
-            queries.append({"job_name": job_name, "sql": q})
+            queries.append([{"job_name": job_name, "sql": q}])
     return queries
 
 def file_to_temp(run_id, num_days, num_files):
@@ -78,7 +78,7 @@ def file_to_temp(run_id, num_days, num_files):
     query = query.replace("<INSERT_RUN_ID_HERE>", run_id)
     for i in range(1, num_days+1):
         date_str = "2000-01-" + str(i).rjust(2, "0")
-        for j in range(0, num_files+1):
+        for j in range(0, num_files):
             q = query.replace("<INSERT_DATE_HERE>", date_str).replace("<INSERT_NUM_HERE>", str(j))
             job_name = f"file_to_temp - {date_str} 0_0_{j}.parquet"
             queries.append([{"job_name": job_name, "sql": q}])
@@ -91,7 +91,7 @@ def temp_to_raw(run_id, num_days, num_files):
     query = query.replace("<INSERT_RUN_ID_HERE>", run_id)
     for i in range(1, num_days+1):
         date_str = "2000-01-" + str(i).rjust(2, "0")
-        for j in range(0, num_files+1):
+        for j in range(0, num_files):
             q = query.replace("<INSERT_DATE_HERE>", date_str).replace("<INSERT_NUM_HERE>", str(j))
             job_name = f"temp_to_raw - {date_str} 0_0_{j}"
             queries.append({"job_name": job_name, "sql": q})
@@ -180,7 +180,7 @@ def drop_tables(run_id, num_days, num_files):
     ]
     for i in range(1, num_days+1):
         date_str = "2000-01-" + str(i).rjust(2, "0")
-        for n in range(0, num_files+1):
+        for n in range(0, num_files):
             queries.append([{"job_name": f"drop_temp_table_{date_str}_{n}", "sql": f'DROP TABLE IF EXISTS "sizingtest"."{run_id}"."temp"."{date_str}_0_0_{n}"'}])
     return queries
 

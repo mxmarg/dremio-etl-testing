@@ -81,7 +81,7 @@ def multi_tenant_run(api, num_tenants: int):
 
     # print(f"\n### STEP 1 - Promote Parquet files ###")
     # promote_queries = tco_benchmark.promote_parquet_files(RUN_ID, NUM_DAYS, NUM_FILES_PER_DAY)
-    # run_parallel_jobs(api, queries=promote_queries, max_workers=MAX_PARALLEL_JOBS_SUBMITTED)
+    # run_parallel_jobs(api, promote_queries, max_workers=MAX_PARALLEL_JOBS_SUBMITTED)
 
     print(f"\n### STEP 2 - Ingest files into temp tables ###")
     file_ingest_queries = []
@@ -140,8 +140,10 @@ if __name__ == "__main__":
 
     RUN_ID = tco_benchmark.generate_timestamped_run_id()
     NUM_DAYS = 1
-    NUM_FILES_PER_DAY = 10
+    NUM_FILES_PER_DAY = 11
     MAX_PARALLEL_JOBS_SUBMITTED = 20
+    DREMIO_SPACE_NAME = "sizingtest_space"
+    api.create_space(DREMIO_SPACE_NAME)
 
     print(f"Run ID: {RUN_ID}")
     print(f"NUM_DAYS: {NUM_DAYS}")

@@ -55,45 +55,6 @@ def run_parallel_jobs(api: DremioAPI, query_sets: list[list[dict]], max_workers=
             if res != 'COMPLETED':
                 print(f" - {res}")
 
-# def single_tenant_run(api):
-#     tco_benchmark.create_tables(api, RUN_ID)
-#     tco_benchmark.create_agg_views(api, RUN_ID)
-#     tco_benchmark.create_agg_reflections(api, RUN_ID)
-
-#     print(f"\n### STEP 1 - Promote Parquet files ###")
-#     promote_queries = tco_benchmark.promote_parquet_files(RUN_ID, NUM_DAYS, NUM_FILES_PER_DAY)
-#     run_parallel_jobs(api, promote_queries, max_workers=MAX_PARALLEL_JOBS_SUBMITTED)
-
-#     print(f"\n### STEP 2 - Ingest files into temp tables ###")
-#     file_ingest_queries = tco_benchmark.file_to_temp(RUN_ID, NUM_DAYS, NUM_FILES_PER_DAY)
-#     run_parallel_jobs(api, file_ingest_queries, max_workers=MAX_PARALLEL_JOBS_SUBMITTED)
-
-#     print(f"\n### STEP 3 - Ingest temp tables into raw table ###")
-#     raw_ingest_queries = tco_benchmark.temp_to_raw(RUN_ID, NUM_DAYS, NUM_FILES_PER_DAY)
-#     run_parallel_jobs(api, raw_ingest_queries, max_workers=MAX_PARALLEL_JOBS_SUBMITTED)
-
-#     print(f"\n### STEP 4 - Ingest raw table into processed table ###")
-#     processed_insert_queries = tco_benchmark.raw_to_processed_insert(RUN_ID, NUM_DAYS)
-#     run_sequential_jobs(api_prio, processed_insert_queries)
-
-#     print(f"\n### STEP 5 - Merge raw into processed table across partitions ###")
-#     processed_merge_queries = tco_benchmark.raw_to_processed_merge(RUN_ID, NUM_DAYS)
-#     run_sequential_jobs(api_prio, processed_merge_queries)
-
-#     print(f"\n### STEP 6 - Refresh raw reflection on aggregated view on processed table (Should have been happening incrementally in the background...) ###\n")
-
-#     print(f"\n### STEP 8 - Optimize raw table ###")
-#     optimize_raw_queries = tco_benchmark.optimize_raw(RUN_ID, NUM_DAYS)
-#     run_parallel_jobs(api, optimize_raw_queries, max_workers=MAX_PARALLEL_JOBS_SUBMITTED)
-
-#     print(f"\n### STEP 9 - Optimize processed table ###")
-#     optimize_processed_queries = tco_benchmark.optimize_processed(RUN_ID, NUM_DAYS)
-#     run_parallel_jobs(api, optimize_processed_queries, max_workers=MAX_PARALLEL_JOBS_SUBMITTED)
-
-#     print(f"\n### STEP 10 - Expiring snapshots via vacuum ###")
-#     vacuum_queries = tco_benchmark.vacuum_tables(RUN_ID)
-#     run_parallel_jobs(api, vacuum_queries, max_workers=MAX_PARALLEL_JOBS_SUBMITTED)
-
 
 def multi_tenant_run(api, num_tenants: int):
     tenant_ids = [f"TENANT_{i}" for i in range(num_tenants)]
@@ -160,8 +121,10 @@ def multi_tenant_run(api, num_tenants: int):
     run_parallel_jobs(api, optimize_queries, max_workers=MAX_PARALLEL_JOBS_SUBMITTED)
 
     print(f"\n### STEP 9 - Expiring snapshots via vacuum ###")
-    vacuum_queries = tco_benchmark.vacuum_tables(RUN_ID)
-    run_parallel_jobs(api, queries=vacuum_queries, max_workers=MAX_PARALLEL_JOBS_SUBMITTED)
+    vacuum_queries = []
+    for tenant_id in tenant_ids:
+        vacuum_queries += tco_benchmark.vacuum_tables(RUN_ID)
+    run_parallel_jobs(api, vacuum_queries, max_workers=MAX_PARALLEL_JOBS_SUBMITTED)
 
 if __name__ == "__main__":
     # Authenticate via REST API
@@ -184,12 +147,10 @@ if __name__ == "__main__":
     print(f"NUM_DAYS: {NUM_DAYS}")
     print(f"NUM_FILES_PER_DAY: est. {NUM_FILES_PER_DAY}")
 
-    ### Preparation ###
+    # ### Preparation ###
     # print(f"\n### Preparation - Generate Dummy Data Files ###")
-    # dummy_data_queries = tco_benchmark.generate_dummy_data(api, RUN_ID, NUM_DAYS)
-    # run_parallel_jobs(api, queries=dummy_data_queries, max_workers=MAX_PARALLEL_JOBS_SUBMITTED)
-
-    # single_tenant_run(api)
+    # dummy_data_queries = tco_benchmark.generate_dummy_data(RUN_ID, NUM_DAYS)
+    # run_parallel_jobs(api, dummy_data_queries, max_workers=MAX_PARALLEL_JOBS_SUBMITTED)
 
     NUM_TENANTS = 10
     multi_tenant_run(api, NUM_TENANTS)

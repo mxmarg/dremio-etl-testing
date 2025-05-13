@@ -27,7 +27,7 @@ def generate_dummy_data(run_id, num_days) -> list[str]:
         date_str = "2000-01-" + str(i).rjust(2, "0")
         q = query.replace("<INSERT_DATE_HERE>", date_str)
         job_name = f"generate_dummy_data - {date_str}"
-        queries.append({"job_name": job_name, "sql": q})
+        queries.append([{"job_name": job_name, "sql": q}])
     return queries
 
 def create_tables(run_id):

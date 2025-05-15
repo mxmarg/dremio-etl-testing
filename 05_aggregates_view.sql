@@ -1,4 +1,4 @@
-CREATE OR REPLACE VIEW sizingtest_space."aggregates_<INSERT_RUN_ID_HERE>" AS
+CREATE OR REPLACE VIEW "sizingtest_space"."aggregates_<INSERT_RUN_ID_HERE>" AS
 SELECT
     "managedObjectId",
     "measuringNodeId",

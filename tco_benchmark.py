@@ -17,13 +17,13 @@ def generate_timestamped_run_id(prefix="run"):
     return f"{prefix}_{timestamp_str}"    
 
 
-def generate_dummy_data(run_id, num_days) -> list[str]:
+def generate_dummy_data(run_id, num_days, days_offset) -> list[str]:
     queries = []
     with open("00_generate_dummy_data.sql", 'r') as file:
         query = file.read()
   
     query = query.replace("<INSERT_RUN_ID_HERE>", run_id)
-    for i in range(1, num_days+1):
+    for i in range(1+days_offset, num_days+days_offset+1):
         date_str = "2000-01-" + str(i).rjust(2, "0")
         q = query.replace("<INSERT_DATE_HERE>", date_str)
         job_name = f"generate_dummy_data - {date_str}"
@@ -51,19 +51,31 @@ def create_agg_views(run_id):
     queries.append([{"job_name": "create_agg_view", "sql": query}])
     return queries
 
-def create_agg_reflections(run_id):
+def create_dashboard_views(run_id):
+    queries = []
+    with open("07_dashboard_view.sql", 'r') as file:
+        query = file.read()
+    query = query.replace("<INSERT_RUN_ID_HERE>", run_id)
+    queries.append([{"job_name": "create_dashboard_view", "sql": query}])
+    return queries
+
+def create_reflections(run_id):
     queries = []
     with open("06_aggregates_reflection.sql", 'r') as file:
         query = file.read()
     query = query.replace("<INSERT_RUN_ID_HERE>", run_id)
     queries.append([{"job_name": "create_agg_reflection", "sql": query}])
+    with open("08_dashboard_reflection.sql", 'r') as file:
+        query = file.read()
+    query = query.replace("<INSERT_RUN_ID_HERE>", run_id)
+    queries.append([{"job_name": "create_dashboard_reflection", "sql": query}])
     return queries
 
-def promote_parquet_files(run_id, num_days, num_files) -> list[str]:
+def promote_parquet_files(run_id, num_days, days_offset, num_files) -> list[str]:
     queries = []
     query = 'ALTER TABLE <INSERT_SOURCE_PATH_HERE>."raw_data"."<INSERT_DATE_HERE>"."0_0_<INSERT_NUM_HERE>.parquet" REFRESH METADATA AUTO PROMOTION'
     query = query.replace("<INSERT_RUN_ID_HERE>", run_id)
-    for i in range(1, num_days+1):
+    for i in range(1+days_offset, num_days+days_offset+1):
         date_str = "2000-01-" + str(i).rjust(2, "0")
         for j in range(0, num_files):
             q = query.replace("<INSERT_DATE_HERE>", date_str).replace("<INSERT_NUM_HERE>", str(j))
@@ -71,25 +83,26 @@ def promote_parquet_files(run_id, num_days, num_files) -> list[str]:
             queries.append([{"job_name": job_name, "sql": q}])
     return queries
 
-def file_to_temp(run_id, num_days, num_files):
+def file_to_temp(run_id, num_days, days_offset, num_files):
     queries = []
     with open("file_ingest/01_temp_create.sql", 'r') as file:
         query = file.read()
     query = query.replace("<INSERT_RUN_ID_HERE>", run_id)
-    for i in range(1, num_days+1):
+    for i in range(1+days_offset, num_days+days_offset+1):
         date_str = "2000-01-" + str(i).rjust(2, "0")
+        print(date_str)
         for j in range(0, num_files):
             q = query.replace("<INSERT_DATE_HERE>", date_str).replace("<INSERT_NUM_HERE>", str(j))
             job_name = f"file_to_temp - {date_str} 0_0_{j}.parquet"
             queries.append([{"job_name": job_name, "sql": q}])
     return queries
 
-def temp_to_raw(run_id, num_days, num_files):
+def temp_to_raw(run_id, num_days, days_offset, num_files):
     queries = []
     with open("file_ingest/02_raw_insert.sql", 'r') as file:
         query = file.read()
     query = query.replace("<INSERT_RUN_ID_HERE>", run_id)
-    for i in range(1, num_days+1):
+    for i in range(1+days_offset, num_days+days_offset+1):
         date_str = "2000-01-" + str(i).rjust(2, "0")
         for j in range(0, num_files):
             q = query.replace("<INSERT_DATE_HERE>", date_str).replace("<INSERT_NUM_HERE>", str(j))
@@ -98,7 +111,7 @@ def temp_to_raw(run_id, num_days, num_files):
     query_set = [queries]
     return query_set
 
-def raw_to_processed_insert(run_id, num_days):
+def raw_to_processed_insert(run_id, num_days, days_offset):
     queries = []
     # input_range_VARCHAR = ["C_H101", "C_H110"]
     # input_range_INTEGER = ["C_H111", "C_H120"]
@@ -107,7 +120,7 @@ def raw_to_processed_insert(run_id, num_days):
         query = file.read()
     query = query.replace("<INSERT_RUN_ID_HERE>", run_id)
     hour_step = 1
-    for i in range(1, num_days+1):
+    for i in range(1+days_offset, num_days+days_offset+1):
         date_str = "2000-01-" + str(i).rjust(2, "0")
         for h in range(0, 24, hour_step):
             hour_range = f'"hour" >= {h} AND "hour" < {h+hour_step}'
@@ -117,7 +130,7 @@ def raw_to_processed_insert(run_id, num_days):
     query_set = [queries]
     return query_set
 
-def raw_to_processed_merge(run_id, num_days):
+def raw_to_processed_merge(run_id, num_days, days_offset):
     queries = []
     # input_range_VARCHAR = ["C_H101", "C_H110"]
     # input_range_INTEGER = ["C_H111", "C_H120"]
@@ -126,7 +139,7 @@ def raw_to_processed_merge(run_id, num_days):
         query = file.read()
     query = query.replace("<INSERT_RUN_ID_HERE>", run_id)
     hour_step = 3
-    for i in range(1, num_days+1):
+    for i in range(1+days_offset, num_days+days_offset+1):
         date_str = "2000-01-" + str(i).rjust(2, "0")
         for h in range(0, 3, hour_step):
             hour_range = f'"hour" >= {h} AND "hour" < {h+hour_step}'
@@ -136,13 +149,13 @@ def raw_to_processed_merge(run_id, num_days):
     query_set = [queries]
     return query_set
 
-def optimize_raw(run_id, num_days):
+def optimize_raw(run_id, num_days, days_offset):
     queries = []
     with open("file_ingest/08_optimize_raw.sql", 'r') as file:
         query = file.read()
     query = query.replace("<INSERT_RUN_ID_HERE>", run_id)
     hour_step = 1
-    for i in range(1, num_days+1):
+    for i in range(1+days_offset, num_days+days_offset+1):
         date_str = "2000-01-" + str(i).rjust(2, "0")
         for h in range(0, 24, hour_step):
             hour_range = f'"hour" >= {h} AND "hour" < {h+hour_step}'
@@ -151,13 +164,13 @@ def optimize_raw(run_id, num_days):
             queries.append([{"job_name": job_name, "sql": q}])
     return queries
 
-def optimize_processed(run_id, num_days):
+def optimize_processed(run_id, num_days, days_offset):
     queries = []
     with open("file_ingest/09_optimize_processed.sql", 'r') as file:
         query = file.read()
     query = query.replace("<INSERT_RUN_ID_HERE>", run_id)
     hour_step = 12
-    for i in range(1, num_days+1):
+    for i in range(1+days_offset, num_days+days_offset+1):
         date_str = "2000-01-" + str(i).rjust(2, "0")
         for h in range(0, 24, hour_step):
             hour_range = f'"hour" >= {h} AND "hour" < {h+hour_step}'
@@ -173,12 +186,11 @@ def vacuum_tables(run_id):
     ]
     return queries
 
-def drop_tables(run_id, num_days, num_files):
-    queries = [
-        [{"job_name": "drop_raw_table",       "sql": f'DROP TABLE IF EXISTS <INSERT_SOURCE_PATH_HERE>."{run_id}".raw_table'}],
-        [{"job_name": "drop_processed_table", "sql": f'DROP TABLE IF EXISTS <INSERT_SOURCE_PATH_HERE>."{run_id}".processed_table'}],
-    ]
-    for i in range(1, num_days+1):
+def drop_tables(run_id, num_days, days_offset, num_files):
+    queries = []
+    queries.append([{"job_name": "drop_raw_table",       "sql": f'DROP TABLE IF EXISTS <INSERT_SOURCE_PATH_HERE>."{run_id}".raw_table'}])
+    queries.append([{"job_name": "drop_processed_table", "sql": f'DROP TABLE IF EXISTS <INSERT_SOURCE_PATH_HERE>."{run_id}".processed_table'}])
+    for i in range(1+days_offset, num_days+days_offset+1):
         date_str = "2000-01-" + str(i).rjust(2, "0")
         for n in range(0, num_files):
             queries.append([{"job_name": f"drop_temp_table_{date_str}_{n}", "sql": f'DROP TABLE IF EXISTS <INSERT_SOURCE_PATH_HERE>."{run_id}"."temp"."{date_str}_0_0_{n}"'}])
@@ -186,7 +198,8 @@ def drop_tables(run_id, num_days, num_files):
 
 def drop_views(run_id):
     queries = [
-        [{"job_name": "drop_view",       "sql": f'DROP VIEW IF EXISTS sizingtest_space."aggregates_{run_id}"'}]
+        [{"job_name": "drop_view",       "sql": f'DROP VIEW IF EXISTS sizingtest_space."aggregates_{run_id}"'}],
+        [{"job_name": "drop_view",       "sql": f'DROP VIEW IF EXISTS sizingtest_space."dashboard_{run_id}"'}]
     ]
     return queries
 

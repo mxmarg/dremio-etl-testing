@@ -63,50 +63,53 @@ def multi_tenant_run(api, num_tenants: int):
     drop_table_queries = []
     drop_view_queries = []
     create_table_queries = []
-    create_view_queries = []
+    create_agg_view_queries = []
+    create_dashboard_view_queries = []
     create_reflection_queries = []
 
     for tenant_id in tenant_ids:
-        drop_table_queries += tco_benchmark.drop_tables(run_id=tenant_id, num_days=NUM_DAYS, num_files=NUM_FILES_PER_DAY)
+        drop_table_queries += tco_benchmark.drop_tables(run_id=tenant_id, num_days=NUM_DAYS, days_offset=DAYS_OFFSET, num_files=NUM_FILES_PER_DAY)
         drop_view_queries += tco_benchmark.drop_views(run_id=tenant_id)
         create_table_queries += tco_benchmark.create_tables(run_id=tenant_id)
-        create_view_queries += tco_benchmark.create_agg_views(run_id=tenant_id)
-        create_reflection_queries += tco_benchmark.create_agg_reflections(run_id=tenant_id)
+        create_agg_view_queries += tco_benchmark.create_agg_views(run_id=tenant_id)
+        create_dashboard_view_queries += tco_benchmark.create_dashboard_views(run_id=tenant_id)
+        create_reflection_queries += tco_benchmark.create_reflections(run_id=tenant_id)
 
     run_parallel_jobs(api, drop_table_queries, max_workers=MAX_PARALLEL_JOBS_SUBMITTED)
     run_parallel_jobs(api, drop_view_queries, max_workers=MAX_PARALLEL_JOBS_SUBMITTED)
     run_parallel_jobs(api, create_table_queries, max_workers=MAX_PARALLEL_JOBS_SUBMITTED)
-    run_parallel_jobs(api, create_view_queries, max_workers=MAX_PARALLEL_JOBS_SUBMITTED)
+    run_parallel_jobs(api, create_agg_view_queries, max_workers=MAX_PARALLEL_JOBS_SUBMITTED)
+    run_parallel_jobs(api, create_dashboard_view_queries, max_workers=MAX_PARALLEL_JOBS_SUBMITTED)
     run_parallel_jobs(api, create_reflection_queries, max_workers=MAX_PARALLEL_JOBS_SUBMITTED)
 
-    # print(f"\n### STEP 1 - Promote Parquet files ###")
-    # promote_queries = tco_benchmark.promote_parquet_files(RUN_ID, NUM_DAYS, NUM_FILES_PER_DAY)
-    # run_parallel_jobs(api, promote_queries, max_workers=MAX_PARALLEL_JOBS_SUBMITTED)
+    print(f"\n### STEP 1 - Promote Parquet files ###")
+    promote_queries = tco_benchmark.promote_parquet_files(RUN_ID, NUM_DAYS, DAYS_OFFSET, num_files=NUM_FILES_PER_DAY)
+    run_parallel_jobs(api, promote_queries, max_workers=MAX_PARALLEL_JOBS_SUBMITTED)
 
     print(f"\n### STEP 2 - Ingest files into temp tables ###")
     file_ingest_queries = []
     for tenant_id in tenant_ids:
-        file_ingest_queries += tco_benchmark.file_to_temp(tenant_id, NUM_DAYS, NUM_FILES_PER_DAY)
+        file_ingest_queries += tco_benchmark.file_to_temp(tenant_id, NUM_DAYS, DAYS_OFFSET, NUM_FILES_PER_DAY)
     run_parallel_jobs(api, file_ingest_queries, max_workers=MAX_PARALLEL_JOBS_SUBMITTED)
 
     print(f"\n### STEP 3 - Ingest temp tables into raw table ###")
     raw_ingest_queries = []
     for tenant_id in tenant_ids:
-        query_set = tco_benchmark.temp_to_raw(tenant_id, NUM_DAYS, NUM_FILES_PER_DAY)
+        query_set = tco_benchmark.temp_to_raw(tenant_id, NUM_DAYS, DAYS_OFFSET, NUM_FILES_PER_DAY)
         raw_ingest_queries += query_set
     run_parallel_jobs(api, raw_ingest_queries, max_workers=MAX_PARALLEL_JOBS_SUBMITTED)
 
     print(f"\n### STEP 4 - Ingest raw table into processed table ###")
     processed_insert_queries = []
     for tenant_id in tenant_ids:
-        query_set = tco_benchmark.raw_to_processed_insert(tenant_id, NUM_DAYS)
+        query_set = tco_benchmark.raw_to_processed_insert(tenant_id, NUM_DAYS, DAYS_OFFSET)
         processed_insert_queries += query_set
     run_parallel_jobs(api, processed_insert_queries, max_workers=MAX_PARALLEL_JOBS_SUBMITTED)
 
     print(f"\n### STEP 5 - Merge raw into processed table across partitions ###")
     processed_merge_queries = []
     for tenant_id in tenant_ids:
-        query_set = tco_benchmark.raw_to_processed_merge(tenant_id, NUM_DAYS)
+        query_set = tco_benchmark.raw_to_processed_merge(tenant_id, NUM_DAYS, DAYS_OFFSET)
         processed_merge_queries += query_set
     run_parallel_jobs(api, processed_merge_queries, max_workers=MAX_PARALLEL_JOBS_SUBMITTED)
 
@@ -116,8 +119,8 @@ def multi_tenant_run(api, num_tenants: int):
 
     optimize_queries = []
     for tenant_id in tenant_ids:
-        # optimize_queries += tco_benchmark.optimize_raw(tenant_id, NUM_DAYS)
-        optimize_queries += tco_benchmark.optimize_processed(tenant_id, NUM_DAYS)
+        # optimize_queries += tco_benchmark.optimize_raw(tenant_id, NUM_DAYS, DAYS_OFFSET)
+        optimize_queries += tco_benchmark.optimize_processed(tenant_id, NUM_DAYS, DAYS_OFFSET)
     run_parallel_jobs(api, optimize_queries, max_workers=MAX_PARALLEL_JOBS_SUBMITTED)
 
     print(f"\n### STEP 9 - Expiring snapshots via vacuum ###")
@@ -131,12 +134,14 @@ if __name__ == "__main__":
     filepath_dir = os.path.dirname(os.path.abspath(__file__))
     parser = ConfigParser()
     _ = parser.read(os.path.join(filepath_dir, "config.cfg"))
-    user = parser.get('Authentication', 'user')
-    password = parser.get('Authentication', 'password')
-    dremio_url = parser.get('Authentication', 'dremio_endpoint')
+    CONFIG_HEADER = 'Authentication TestCluster'
+    user = parser.get(CONFIG_HEADER, 'user')
+    password = parser.get(CONFIG_HEADER, 'password')
+    dremio_url = parser.get(CONFIG_HEADER, 'dremio_endpoint')
 
     RUN_ID = tco_benchmark.generate_timestamped_run_id()
     NUM_DAYS = 1
+    DAYS_OFFSET = 0
     NUM_FILES_PER_DAY = 11
     MAX_PARALLEL_JOBS_SUBMITTED = 20
     DREMIO_SPACE_NAME = "sizingtest_space"
@@ -146,12 +151,13 @@ if __name__ == "__main__":
 
     print(f"Run ID: {RUN_ID}")
     print(f"NUM_DAYS: {NUM_DAYS}")
+    print(f"DAYS_OFFSET: {DAYS_OFFSET}")
     print(f"NUM_FILES_PER_DAY: est. {NUM_FILES_PER_DAY}")
 
     # ### Preparation ###
-    print(f"\n### Preparation - Generate Dummy Data Files ###")
-    dummy_data_queries = tco_benchmark.generate_dummy_data(RUN_ID, NUM_DAYS)
-    run_parallel_jobs(api, dummy_data_queries, max_workers=MAX_PARALLEL_JOBS_SUBMITTED)
+    # print(f"\n### Preparation - Generate Dummy Data Files ###")
+    # dummy_data_queries = tco_benchmark.generate_dummy_data(RUN_ID, num_days=1, days_offset=0)
+    # run_parallel_jobs(api, dummy_data_queries, max_workers=MAX_PARALLEL_JOBS_SUBMITTED)
 
     NUM_TENANTS = 10
     multi_tenant_run(api, NUM_TENANTS)
